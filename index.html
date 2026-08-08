@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#8b1e1e">
+<title>Hotel Adarsh | Live Menu</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fffaf5;color:#222;font-family:Arial,sans-serif}
+header{background:linear-gradient(135deg,#8b1e1e,#b52a20);color:#fff;padding:22px 14px 16px;position:sticky;top:0;z-index:10}
+h1{margin:0;text-align:center;font-size:27px}header p{text-align:center;margin:5px 0 14px;font-size:13px;opacity:.9}
+.search{width:100%;border:0;border-radius:24px;padding:13px 16px;font-size:15px;outline:none}
+.tabs{display:flex;gap:8px;overflow:auto;padding:10px 12px;background:#fffaf5;position:sticky;top:119px;z-index:8}
+.tabs button{border:1px solid #ddd;background:#fff;border-radius:20px;padding:9px 13px;white-space:nowrap}
+.tabs .active{background:#8b1e1e;color:#fff;border-color:#8b1e1e}
+main{max-width:650px;margin:auto;padding:2px 12px 120px}h2{font-size:20px;margin:18px 2px 8px}
+.item{background:#fff;border-radius:16px;padding:12px;margin:9px 0;display:flex;gap:10px;box-shadow:0 2px 10px #0000000c}
+.pic{width:78px;height:78px;border-radius:12px;background:#f0e8df;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex:none}
+.pic img{width:100%;height:100%;object-fit:cover}
+.info{flex:1;min-width:0}h3{margin:2px 0 4px;font-size:16px}.desc{font-size:12px;color:#777;line-height:1.35}
+.price{font-weight:bold;color:#8b1e1e;margin-top:7px}.tag{font-size:10px;background:#fff0c8;color:#8a5b00;padding:3px 6px;border-radius:9px;margin-left:5px}
+.qty{display:flex;align-items:center;gap:7px;align-self:flex-end}.qty button{width:31px;height:31px;border:0;border-radius:9px;background:#8b1e1e;color:white;font-size:18px}
+.qty span{min-width:18px;text-align:center;font-weight:bold}.sold{color:#a00;font-size:12px;font-weight:bold}
+.cart{position:fixed;bottom:12px;left:12px;right:12px;max-width:626px;margin:auto;background:#222;color:white;border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:20;box-shadow:0 5px 20px #0004}
+.cart button{background:#25d366;color:white;border:0;border-radius:11px;padding:10px 13px;font-weight:bold}
+.status{text-align:center;font-size:11px;color:#777;padding:8px}#empty{display:none;text-align:center;color:#777;padding:35px}
+</style>
+</head>
+<body>
+<header>
+<h1>HOTEL ADARSH</h1>
+<p>Fresh • Hygienic • Delicious</p>
+<input id="search" class="search" placeholder="🔍 Search food..." oninput="render()">
+</header>
+<nav id="tabs" class="tabs"></nav>
+<main>
+<div id="status" class="status">Loading live menu…</div>
+<div id="menu"></div>
+<div id="empty">No food item found.</div>
+</main>
+<div class="cart">
+<div>🛒 <span id="count">0</span> items · <b>₹<span id="total">0</span></b></div>
+<button onclick="order()">Order on WhatsApp</button>
+</div>
+
+<script>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSj5W06MnQFWWWxzzzlt3-M7ffXhatCInQhsK0o9UvcPswuFZwA3bEIp4Msgf-Z7M5qg2Wl1h4w7Rgm/pub?output=csv";
+const WHATSAPP_NUMBER = "919709109220";
+
+const fallbackData = [{"category": "Snacks & Sweets", "name": "Kachori", "price": 10, "status": "Available", "description": "Traditional crispy kachori", "image": "", "popular": "No", "sort": 1}, {"category": "Snacks & Sweets", "name": "Samosa", "price": 10, "status": "Available", "description": "Crispy samosa", "image": "", "popular": "Popular", "sort": 2}, {"category": "Snacks & Sweets", "name": "Jalebi", "price": 10, "status": "Available", "description": "Fresh crispy jalebi", "image": "", "popular": "Popular", "sort": 3}, {"category": "Snacks & Sweets", "name": "Aaloo Chop", "price": 10, "status": "Available", "description": "Crispy potato snack", "image": "", "popular": "No", "sort": 4}, {"category": "Snacks & Sweets", "name": "Balushahi", "price": 10, "status": "Available", "description": "Traditional Indian sweet", "image": "", "popular": "No", "sort": 5}, {"category": "South Indian", "name": "Plain Dosa", "price": 50, "status": "Available", "description": "Crispy plain dosa with chutney and sambar", "image": "", "popular": "No", "sort": 1}, {"category": "South Indian", "name": "Masala Dosa", "price": 60, "status": "Available", "description": "Dosa filled with spiced potato masala", "image": "", "popular": "Popular", "sort": 2}, {"category": "South Indian", "name": "Paneer Dosa", "price": 100, "status": "Available", "description": "Dosa with paneer filling", "image": "", "popular": "No", "sort": 3}, {"category": "South Indian", "name": "Rawa Masala Dosa", "price": 70, "status": "Available", "description": "Crispy rawa dosa with masala", "image": "", "popular": "No", "sort": 4}, {"category": "South Indian", "name": "Idli", "price": 40, "status": "Available", "description": "Soft idli with chutney and sambar", "image": "", "popular": "Popular", "sort": 5}, {"category": "Chinese", "name": "Veg Chowmein", "price": 60, "status": "Available", "description": "Stir-fried noodles with vegetables", "image": "", "popular": "Popular", "sort": 1}, {"category": "Chinese", "name": "Chicken Chowmein", "price": 120, "status": "Available", "description": "Stir-fried noodles with chicken", "image": "", "popular": "No", "sort": 2}, {"category": "Chinese", "name": "Veg Chilli", "price": 60, "status": "Available", "description": "Spicy Indo-Chinese vegetable dish", "image": "", "popular": "No", "sort": 3}, {"category": "Chinese", "name": "Chicken Chilli", "price": 100, "status": "Available", "description": "Spicy Indo-Chinese chicken dish", "image": "", "popular": "Popular", "sort": 4}, {"category": "Main Course", "name": "Roti", "price": 10, "status": "Available", "description": "Indian flatbread", "image": "", "popular": "No", "sort": 1}, {"category": "Main Course", "name": "Tadka", "price": 80, "status": "Available", "description": "Dal tadka", "image": "", "popular": "Popular", "sort": 2}, {"category": "Main Course", "name": "Mix Veg", "price": 80, "status": "Available", "description": "Mixed vegetable curry", "image": "", "popular": "No", "sort": 3}, {"category": "Main Course", "name": "Paneer Masala", "price": 100, "status": "Available", "description": "Paneer in rich masala gravy", "image": "", "popular": "Popular", "sort": 4}, {"category": "Main Course", "name": "Chana Masala", "price": 80, "status": "Available", "description": "Spiced chickpea curry", "image": "", "popular": "No", "sort": 5}, {"category": "Special", "name": "Chole Bhature", "price": 60, "status": "Available", "description": "Chole served with bhature", "image": "", "popular": "Popular", "sort": 1}];
+let data = fallbackData;
+let active = "All";
+let cart = {};
+
+function parseCSV(text) {
+  const rows=[]; let row=[], cell="", quoted=false;
+  for(let i=0;i<text.length;i++) {
+    const ch=text[i], next=text[i+1];
+    if(ch==='"') {
+      if(quoted && next==='"') { cell+='"'; i++; }
+      else quoted=!quoted;
+    } else if(ch===',' && !quoted) { row.push(cell); cell=""; }
+    else if((ch==='\n' || ch==='\r') && !quoted) {
+      if(ch==='\r' && next==='\n') i++;
+      row.push(cell); cell="";
+      if(row.some(v=>v.trim()!=="")) rows.push(row);
+      row=[];
+    } else cell+=ch;
+  }
+  if(cell!=="" || row.length) { row.push(cell); if(row.some(v=>v.trim()!=="")) rows.push(row); }
+  if(!rows.length) return [];
+  const headers=rows[0].map(x=>x.trim());
+  return rows.slice(1).map(r=>{
+    const o={}; headers.forEach((h,i)=>o[h]=(r[i]??"").trim());
+    return {
+      category:o["Category"]||"",
+      name:o["Item Name"]||"",
+      price:Number(o["Price"]||0),
+      status:o["Status"]||"Available",
+      description:o["Description"]||"",
+      image:o["Image URL"]||"",
+      popular:o["Popular"]||"No",
+      sort:Number(o["Sort Order"]||999)
+    };
+  }).filter(x=>x.name);
+}
+
+async function loadLiveMenu() {
+  try {
+    const res=await fetch(SHEET_CSV_URL, {cache:"no-store"});
+    if(!res.ok) throw new Error("Sheet unavailable");
+    const text=await res.text();
+    const live=parseCSV(text);
+    if(live.length) {
+      data=live.sort((a,b)=>a.category.localeCompare(b.category)||a.sort-b.sort);
+      document.getElementById("status").textContent="🟢 Live menu updated from Google Sheets";
+    } else throw new Error("Empty sheet");
+  } catch(e) {
+    data=fallbackData;
+    document.getElementById("status").textContent="🟡 Showing saved menu. Live sheet could not be reached.";
+  }
+  tabs(); render();
+}
+
+function tabs(){
+ const cats=["All",...new Set(data.map(x=>x.category))];
+ document.getElementById("tabs").innerHTML=cats.map(c=>
+ `<button class="${c===active?'active':''}" onclick="active=${JSON.stringify(c)};tabs();render()">${c}</button>`).join("");
+}
+
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const rows=data.filter(x=>(active==="All"||x.category===active)&&
+ ((x.name+" "+x.category+" "+x.description).toLowerCase().includes(q)));
+ let groups={};
+ rows.forEach(x=>(groups[x.category]??=[]).push(x));
+ let out="";
+ for(const cat in groups) {
+   out+=`<h2>${cat}</h2>`;
+   groups[cat].forEach(x=>{
+     const n=cart[x.name]||0;
+     const photo=x.image ? `<img src="${x.image}" alt="${x.name}">` : "🍽️";
+     const controls=x.status.toLowerCase()==="sold out"
+       ? `<span class="sold">Sold Out</span>`
+       : `<button onclick="change(${JSON.stringify(x.name)},-1)">−</button><span>${n}</span><button onclick="change(${JSON.stringify(x.name)},1)">+</button>`;
+     out+=`<div class="item"><div class="pic">${photo}</div>
+       <div class="info"><h3>${x.name} ${x.popular.toLowerCase()==="popular"?'<span class="tag">Popular</span>':''}</h3>
+       <div class="desc">${x.description}</div><div class="price">₹${x.price}</div></div>
+       <div class="qty">${controls}</div></div>`;
+   });
+ }
+ document.getElementById("menu").innerHTML=out;
+ document.getElementById("empty").style.display=rows.length?"none":"block";
+ updateCart();
+}
+
+function change(name,d) {
+ cart[name]=Math.max(0,(cart[name]||0)+d);
+ if(!cart[name]) delete cart[name];
+ render();
+}
+function updateCart(){
+ let c=0,t=0;
+ for(const [n,q] of Object.entries(cart)){
+   const x=data.find(a=>a.name===n);
+   if(x){c+=q;t+=x.price*q;}
+ }
+ document.getElementById("count").textContent=c;
+ document.getElementById("total").textContent=t;
+}
+function order(){
+ let lines=[],t=0;
+ for(const [n,q] of Object.entries(cart)){
+   const x=data.find(a=>a.name===n);
+   if(x){t+=x.price*q;lines.push(`${n} x ${q} = ₹${x.price*q}`);}
+ }
+ if(!lines.length) return alert("Please select an item first.");
+ if(WHATSAPP_NUMBER.startsWith("REPLACE")) return alert("Please add the Hotel Adarsh WhatsApp number in the code.");
+ const msg="Hello Hotel Adarsh, I would like to order:\n\n"+lines.join("\n")+"\n\nTotal: ₹"+t;
+ window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(msg),"_blank");
+}
+
+loadLiveMenu();
+</script>
+</body>
+</html>
