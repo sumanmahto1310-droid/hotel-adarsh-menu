@@ -142,6 +142,16 @@ function render(){
      const controls = unavailable
        ? `<span class="sold">Currently unavailable</span>`
        : `<button type="button" class="qty-btn" data-item="${encodeURIComponent(x.name)}" data-delta="-1">−</button><span>${n}</span><button type="button" class="qty-btn" data-item="${encodeURIComponent(x.name)}" data-delta="1">+</button>`;
+
+     out += `<div class="item">
+       <div class="pic">${photo}</div>
+       <div class="info">
+         <h3>${x.name}${x.popular.toLowerCase()==="popular" ? '<span class="tag">Popular</span>' : ''}</h3>
+         <div class="desc">${x.description}</div>
+         <div class="price">₹${x.price}</div>
+       </div>
+       <div class="qty">${controls}</div>
+     </div>`;
    });
  }
  document.getElementById("menu").innerHTML=out;
@@ -186,6 +196,10 @@ function order(){
  window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(msg),"_blank");
 }
 
+window.addEventListener("error", function(e) {
+  const status = document.getElementById("status");
+  if (status) status.textContent = "⚠️ Menu loading error. Please refresh.";
+});
 loadLiveMenu();
 </script>
 </body>
