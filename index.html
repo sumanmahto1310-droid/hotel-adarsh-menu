@@ -44,7 +44,28 @@ main{max-width:650px;margin:auto;padding:2px 12px 120px}h2{font-size:20px;margin
 @media(max-width:420px){.pic{width:88px;height:88px}.item{padding:11px}.info h3{font-size:16px}.qty{gap:5px}.quick{top:168px}}
 .cart{position:fixed;bottom:12px;left:12px;right:12px;max-width:626px;margin:auto;background:#222;color:white;border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:20;box-shadow:0 5px 20px #0004}
 .cart button{background:#25d366;color:white;border:0;border-radius:11px;padding:10px 13px;font-weight:bold}
-.status{text-align:center;font-size:11px;color:#777;padding:8px}#empty{display:none;text-align:center;color:#777;padding:35px}
+.status{text-align:center;font-size:11px;color:#777;padding:8px}
+.checkout-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;justify-content:center;z-index:50}
+.checkout-backdrop.show{display:flex}
+.checkout{width:min(100%,650px);max-height:92vh;overflow:auto;background:#fffaf5;border-radius:22px 22px 0 0;padding:18px;box-shadow:0 -8px 30px #0004}
+.checkout-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.checkout-head h2{margin:0;font-size:21px;color:#8b1e1e}
+.close-checkout{border:0;background:#eee;border-radius:50%;width:34px;height:34px;font-size:20px;cursor:pointer}
+.order-summary{background:#fff;border:1px solid #eadfd5;border-radius:14px;padding:11px;margin-bottom:14px}
+.order-summary-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:4px 0}
+.order-summary-total{border-top:1px solid #eee;margin-top:6px;padding-top:8px;font-weight:800}
+.form-label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px;color:#444}
+.checkout input,.checkout textarea,.checkout select{width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:11px;padding:11px 12px;font:inherit;background:#fff;outline:none}
+.checkout input:focus,.checkout textarea:focus,.checkout select:focus{border-color:#8b1e1e}
+.order-types{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.order-type{border:1px solid #ddd;background:#fff;border-radius:11px;padding:10px 6px;text-align:center;cursor:pointer;font-size:12px;font-weight:700}
+.order-type.active{border-color:#8b1e1e;background:#fff0ed;color:#8b1e1e}
+.conditional{display:none}
+.conditional.show{display:block}
+.place-order{width:100%;margin-top:15px;border:0;border-radius:13px;background:#25d366;color:#fff;padding:13px;font-size:15px;font-weight:800;cursor:pointer}
+.checkout-note{font-size:10px;color:#777;text-align:center;margin-top:8px}
+@media(max-width:420px){.order-types{grid-template-columns:1fr 1fr 1fr}.checkout{padding:15px}}
+#empty{display:none;text-align:center;color:#777;padding:35px}
 </style>
 </head>
 <body>
@@ -67,7 +88,44 @@ main{max-width:650px;margin:auto;padding:2px 12px 120px}h2{font-size:20px;margin
 </main>
 <div class="cart">
 <div>🛒 <span id="count">0</span> items · <b>₹<span id="total">0</span></b></div>
-<button onclick="order()">Order on WhatsApp</button>
+<button onclick="openCheckout()">Checkout</button>
+</div>
+
+<div id="checkoutBackdrop" class="checkout-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+  <div class="checkout">
+    <div class="checkout-head">
+      <h2 id="checkoutTitle">🛒 Complete Your Order</h2>
+      <button class="close-checkout" type="button" onclick="closeCheckout()" aria-label="Close">×</button>
+    </div>
+
+    <div id="checkoutSummary" class="order-summary"></div>
+
+    <label class="form-label" for="customerName">Customer Name *</label>
+    <input id="customerName" type="text" autocomplete="name" placeholder="Enter your name">
+
+    <label class="form-label" for="customerMobile">Mobile Number *</label>
+    <input id="customerMobile" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="10-digit mobile number">
+
+    <label class="form-label">Order Type *</label>
+    <div class="order-types">
+      <button type="button" class="order-type active" data-type="Dine-In">🪑 Dine-In</button>
+      <button type="button" class="order-type" data-type="Takeaway">🥡 Takeaway</button>
+      <button type="button" class="order-type" data-type="Delivery">🛵 Delivery</button>
+    </div>
+
+    <div id="tableField" class="conditional show">
+      <label class="form-label" for="tableNumber">Table Number *</label>
+      <input id="tableNumber" type="text" inputmode="numeric" placeholder="e.g. 5">
+    </div>
+
+    <div id="addressField" class="conditional">
+      <label class="form-label" for="deliveryAddress">Delivery Address *</label>
+      <textarea id="deliveryAddress" rows="3" autocomplete="street-address" placeholder="House / Flat, Street, Landmark, Area"></textarea>
+    </div>
+
+    <button class="place-order" type="button" onclick="placeOrder()">📲 Place Order on WhatsApp</button>
+    <div class="checkout-note">Your order details will open in WhatsApp for confirmation.</div>
+  </div>
 </div>
 
 <script>
@@ -254,16 +312,87 @@ function updateCart(){
  document.getElementById("count").textContent=c;
  document.getElementById("total").textContent=t;
 }
-function order(){
- let lines=[],t=0;
+let selectedOrderType="Dine-In";
+
+function getCartItems(){
+ let lines=[], total=0, count=0;
  for(const [n,q] of Object.entries(cart)){
    const x=data.find(a=>a.name===n);
-   if(x){t+=x.price*q;lines.push(`${n} x ${q} = ₹${x.price*q}`);}
+   if(x && q>0){
+     const amount=x.price*q;
+     total+=amount; count+=q;
+     lines.push({name:n, qty:q, price:x.price, amount});
+   }
  }
+ return {lines,total,count};
+}
+
+function openCheckout(){
+ const cartData=getCartItems();
+ if(!cartData.lines.length) return alert("Please select an item first.");
+ renderCheckoutSummary();
+ document.getElementById("checkoutBackdrop").classList.add("show");
+ document.body.style.overflow="hidden";
+ setTimeout(()=>document.getElementById("customerName").focus(),80);
+}
+
+function closeCheckout(){
+ document.getElementById("checkoutBackdrop").classList.remove("show");
+ document.body.style.overflow="";
+}
+
+function renderCheckoutSummary(){
+ const {lines,total,count}=getCartItems();
+ const summary=document.getElementById("checkoutSummary");
+ summary.innerHTML =
+   lines.map(x=>`<div class="order-summary-row"><span>${x.name} × ${x.qty}</span><b>₹${x.amount}</b></div>`).join("")+
+   `<div class="order-summary-row order-summary-total"><span>${count} item${count!==1?"s":""}</span><b>Total ₹${total}</b></div>`;
+}
+
+function selectOrderType(type){
+ selectedOrderType=type;
+ document.querySelectorAll(".order-type").forEach(btn=>{
+   btn.classList.toggle("active",btn.dataset.type===type);
+ });
+ document.getElementById("tableField").classList.toggle("show",type==="Dine-In");
+ document.getElementById("addressField").classList.toggle("show",type==="Delivery");
+}
+document.querySelectorAll(".order-type").forEach(btn=>{
+ btn.addEventListener("click",()=>selectOrderType(btn.dataset.type));
+});
+
+document.getElementById("checkoutBackdrop").addEventListener("click",function(e){
+ if(e.target===this) closeCheckout();
+});
+document.addEventListener("keydown",function(e){
+ if(e.key==="Escape") closeCheckout();
+});
+
+function placeOrder(){
+ const {lines,total}=getCartItems();
  if(!lines.length) return alert("Please select an item first.");
  if(WHATSAPP_NUMBER.startsWith("REPLACE")) return alert("Please add the Hotel Adarsh WhatsApp number in the code.");
- const msg="Hello Hotel Adarsh, I would like to order:\n\n"+lines.join("\n")+"\n\nTotal: ₹"+t;
- window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(msg),"_blank");
+
+ const name=document.getElementById("customerName").value.trim();
+ const mobile=document.getElementById("customerMobile").value.replace(/\D/g,"");
+ const table=document.getElementById("tableNumber").value.trim();
+ const address=document.getElementById("deliveryAddress").value.trim();
+
+ if(name.length<2) return alert("Please enter your name.");
+ if(!/^[6-9]\d{9}$/.test(mobile)) return alert("Please enter a valid 10-digit mobile number.");
+ if(selectedOrderType==="Dine-In" && !table) return alert("Please enter your table number.");
+ if(selectedOrderType==="Delivery" && address.length<8) return alert("Please enter your delivery address.");
+
+ const orderId="HA"+Date.now().toString().slice(-6);
+ const itemLines=lines.map(x=>`• ${x.name} × ${x.qty} — ₹${x.amount}`).join("\n");
+
+ let details=`🏨 *HOTEL ADARSH*\\n━━━━━━━━━━━━━━\\n🧾 Order: ${orderId}\\n👤 Customer: ${name}\\n📱 Mobile: ${mobile}\\n🍽️ Type: ${selectedOrderType}\\n`;
+ if(selectedOrderType==="Dine-In") details+=`🪑 Table: ${table}\\n`;
+ if(selectedOrderType==="Delivery") details+=`📍 Address: ${address}\\n`;
+ details+=`\\n*ORDER DETAILS*\\n${itemLines}\\n━━━━━━━━━━━━━━\\n💰 *TOTAL: ₹${total}*\\n\\nThank you for ordering from Hotel Adarsh!`;
+
+ window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(details),"_blank");
+ closeCheckout();
 }
 
 window.addEventListener("error", function(e) {
