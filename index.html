@@ -384,12 +384,39 @@ function placeOrder(){
  if(selectedOrderType==="Delivery" && address.length<8) return alert("Please enter your delivery address.");
 
  const orderId="HA"+Date.now().toString().slice(-6);
- const itemLines=lines.map(x=>`• ${x.name} × ${x.qty} — ₹${x.amount}`).join("\n");
 
- let details=`🏨 *HOTEL ADARSH*\\n━━━━━━━━━━━━━━\\n🧾 Order: ${orderId}\\n👤 Customer: ${name}\\n📱 Mobile: ${mobile}\\n🍽️ Type: ${selectedOrderType}\\n`;
- if(selectedOrderType==="Dine-In") details+=`🪑 Table: ${table}\\n`;
- if(selectedOrderType==="Delivery") details+=`📍 Address: ${address}\\n`;
- details+=`\\n*ORDER DETAILS*\\n${itemLines}\\n━━━━━━━━━━━━━━\\n💰 *TOTAL: ₹${total}*\\n\\nThank you for ordering from Hotel Adarsh!`;
+ const itemLines=lines.map(x=>`▪️ ${x.name} × ${x.qty}  =  ₹${x.amount}`).join("\n");
+
+ let details =
+`🏨 *HOTEL ADARSH*
+━━━━━━━━━━━━━━━━
+🧾 *ORDER ID:* ${orderId}
+
+👤 *CUSTOMER*
+Name: ${name}
+📱 Mobile: ${mobile}
+
+🍽️ *ORDER TYPE*
+${selectedOrderType}`;
+
+ if(selectedOrderType==="Dine-In") details+=`
+🪑 Table No.: ${table}`;
+
+ if(selectedOrderType==="Delivery") details+=`
+📍 *DELIVERY ADDRESS*
+${address}`;
+
+ details += `
+
+🛒 *ORDER DETAILS*
+${itemLines}
+
+━━━━━━━━━━━━━━━━
+💰 *TOTAL: ₹${total}*
+━━━━━━━━━━━━━━━━
+
+🙏 Thank you for ordering from *Hotel Adarsh*!
+Please confirm this order.`;
 
  window.open("https://wa.me/"+WHATSAPP_NUMBER+"?text="+encodeURIComponent(details),"_blank");
  closeCheckout();
