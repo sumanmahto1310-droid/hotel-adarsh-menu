@@ -1,0 +1,24 @@
+{
+  "name": "Hotel Adarsh",
+  "short_name": "Hotel Adarsh",
+  "description": "Hotel Adarsh Live Menu and Online Ordering",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#8b1e1e",
+  "orientation": "portrait",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/images/hotel-adarsh-pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/hotel-adarsh-pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
