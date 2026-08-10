@@ -487,6 +487,17 @@ window.addEventListener("error", function(e) {
   if (status) status.textContent = "⚠️ Menu loading error. Please refresh.";
 });
 loadLiveMenu();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => {
+        console.log("Hotel Adarsh PWA service worker registered.");
+      })
+      .catch(error => {
+        console.warn("PWA service worker registration failed:", error);
+      });
+  });
+}
 </script>
 </body>
 </html>
