@@ -594,11 +594,14 @@ if ("serviceWorker" in navigator) {
 <style>
 .hotel-legal-footer{
   margin-top:40px;
+  margin-bottom:110px;
   padding:24px 16px;
   text-align:center;
   background:#5b0f0f;
   color:#fff;
   font-family:Arial,sans-serif;
+  position:relative;
+  z-index:1;
 }
 
 .hotel-legal-title{
@@ -614,6 +617,7 @@ if ("serviceWorker" in navigator) {
   flex-wrap:wrap;
   gap:8px;
   font-size:14px;
+  line-height:1.8;
 }
 
 .hotel-legal-links a{
@@ -636,6 +640,10 @@ if ("serviceWorker" in navigator) {
 }
 
 @media(max-width:600px){
+  .hotel-legal-footer{
+    margin-bottom:120px;
+  }
+
   .hotel-legal-links{
     flex-direction:column;
     gap:10px;
@@ -650,6 +658,5 @@ if ("serviceWorker" in navigator) {
   }
 }
 </style>
-
 </body>
 </html>
