@@ -569,5 +569,87 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+
+<!-- HOTEL ADARSH LEGAL FOOTER -->
+<footer class="hotel-legal-footer">
+  <div class="hotel-legal-title">HOTEL ADARSH</div>
+
+  <div class="hotel-legal-links">
+    <a href="/terms.html">Terms &amp; Conditions</a>
+    <span>|</span>
+    <a href="/privacy.html">Privacy Policy</a>
+    <span>|</span>
+    <a href="/refund.html">Cancellation &amp; Refund</a>
+    <span>|</span>
+    <a href="/contact.html">Contact / Grievance</a>
+    <span>|</span>
+    <a href="/fssai.html">FSSAI: 21126013000005</a>
+  </div>
+
+  <div class="hotel-legal-copy">
+    © Hotel Adarsh. All Rights Reserved.
+  </div>
+</footer>
+
+<style>
+.hotel-legal-footer{
+  margin-top:40px;
+  padding:24px 16px;
+  text-align:center;
+  background:#5b0f0f;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+.hotel-legal-title{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+
+.hotel-legal-links{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  font-size:14px;
+}
+
+.hotel-legal-links a{
+  color:#fff;
+  text-decoration:none;
+}
+
+.hotel-legal-links a:hover{
+  text-decoration:underline;
+}
+
+.hotel-legal-links span{
+  opacity:.6;
+}
+
+.hotel-legal-copy{
+  margin-top:14px;
+  font-size:12px;
+  opacity:.7;
+}
+
+@media(max-width:600px){
+  .hotel-legal-links{
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .hotel-legal-links span{
+    display:none;
+  }
+
+  .hotel-legal-links a{
+    display:block;
+  }
+}
+</style>
+
 </body>
 </html>
