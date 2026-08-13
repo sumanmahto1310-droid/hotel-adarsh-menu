@@ -485,6 +485,11 @@ function closeOrderSuccess(){
 function placeOrder(){
  const {lines,total}=getCartItems();
  if(!lines.length) return alert("Please select an item first.");
+
+ if(selectedOrderType==="Delivery" && !deliveryEnabled){
+   return alert(deliveryMessage);
+ }
+
  if(WHATSAPP_NUMBER.startsWith("REPLACE")) return alert("Please add the Hotel Adarsh WhatsApp number in the code.");
 
  const name=document.getElementById("customerName").value.trim();
@@ -551,6 +556,7 @@ window.addEventListener("error", function(e) {
   if (status) status.textContent = "⚠️ Menu loading error. Please refresh.";
 });
 loadLiveMenu();
+loadDeliveryStatus();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js")
