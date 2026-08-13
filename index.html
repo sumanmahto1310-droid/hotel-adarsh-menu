@@ -414,13 +414,28 @@ function renderCheckoutSummary(){
    `<div class="order-summary-row order-summary-total"><span>${count} item${count!==1?"s":""}</span><b>Total ₹${total}</b></div>`;
 }
 
-function selectOrderType(type){
- selectedOrderType=type;
- document.querySelectorAll(".order-type").forEach(btn=>{
-   btn.classList.toggle("active",btn.dataset.type===type);
- });
- document.getElementById("tableField").classList.toggle("show",type==="Dine-In");
- document.getElementById("addressField").classList.toggle("show",type==="Delivery");
+function selectOrderType(type) {
+
+  // Block Delivery when owner has switched it OFF
+  if (type === "Delivery" && !deliveryEnabled) {
+    alert(deliveryMessage);
+    return;
+  }
+
+  selectedOrderType = type;
+
+  document.querySelectorAll(".order-type").forEach(btn => {
+    btn.classList.toggle(
+      "active",
+      btn.dataset.type === type
+    );
+  });
+
+  document.getElementById("tableField")
+    .classList.toggle("show", type === "Dine-In");
+
+  document.getElementById("addressField")
+    .classList.toggle("show", type === "Delivery");
 }
 document.querySelectorAll(".order-type").forEach(btn=>{
  btn.addEventListener("click",()=>selectOrderType(btn.dataset.type));
